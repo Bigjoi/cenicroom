@@ -4,6 +4,12 @@ import json
 import os
 from datetime import datetime
 
+def load_css():
+    with open('style.css') as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+load_css()
+
 # ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์ JSON
 def load_data():
     if os.path.exists('requests.json'):
