@@ -1,11 +1,11 @@
 body {
-    background-image: url('/workspaces/cenicroom/cenic1.jpg');
+    background-image: url('cenic1.jpg');
     background-size: cover;
     background-repeat: no-repeat;
-    color: #ffffff;  /* สีข้อความ */
+    color: #05539cf1;  /* สีข้อความ */
     font-family: 'Arial', sans-serif;
 }
 
 h1, h2, h3 {
-    color: #ffffff; /* สีหัวเรื่อง */
+    color: #1406df; /* สีหัวเรื่อง */
 }
