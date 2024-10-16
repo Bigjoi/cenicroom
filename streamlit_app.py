@@ -10,6 +10,11 @@ def load_css():
 
 load_css()
 
+# เพิ่มรูปภาพด้านบน
+st.image('cenic1.jpg', width=700)  # เปลี่ยนเป็นชื่อไฟล์รูปภาพของคุณ
+
+
+
 # ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์ JSON
 def load_data():
     if os.path.exists('requests.json'):
@@ -24,7 +29,7 @@ def save_data(data):
 
 # ฟังก์ชันหลัก
 def main():
-    st.title('Tool Request System')
+    st.title('Hg CENIC Request System')
 
     requests = load_data()
     
@@ -37,8 +42,8 @@ def main():
         st.write("No requests found.")
 
     # ฟอร์มสำหรับขอใช้งานเครื่องมือ
-    st.subheader('Request a Tool')
-    tool_name = st.text_input('Tool Name')
+    st.subheader('Request Mercury Analyzer NIC')
+    tool_name = st.text_input('Name Model')
     user_name = st.text_input('User Name')
     usage_date = st.date_input('Date of Usage', datetime.today())
     usage_time = st.time_input('Time of Usage', datetime.now().time())
@@ -67,7 +72,7 @@ def main():
             st.success('Request submitted successfully!')
 
     # ลบการขอใช้งานเครื่องมือ
-    st.subheader('Remove a Request')
+    st.subheader('Remove a Request Only Admin')
     request_to_remove = st.selectbox('Select Request to Remove', 
                                        [f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" for req in requests])
 
