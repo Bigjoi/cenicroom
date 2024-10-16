@@ -2,49 +2,66 @@ import streamlit as st
 import pandas as pd
 import json
 import os
+from datetime import datetime
 
 # ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์ JSON
 def load_data():
-    if os.path.exists('inventory.json'):
-        with open('inventory.json', 'r') as f:
+    if os.path.exists('requests.json'):
+        with open('requests.json', 'r') as f:
             return json.load(f)
     return []
 
 # ฟังก์ชันสำหรับบันทึกข้อมูลลงไฟล์ JSON
 def save_data(data):
-    with open('inventory.json', 'w') as f:
+    with open('requests.json', 'w') as f:
         json.dump(data, f)
 
 # ฟังก์ชันหลัก
 def main():
-    st.title('Inventory Management System')
+    st.title('Tool Request System')
 
-    inventory = load_data()
+    requests = load_data()
     
-    # แสดงข้อมูลสินค้า
-    st.subheader('Current Inventory')
-    df = pd.DataFrame(inventory)
-    st.dataframe(df)
+    # แสดงข้อมูลการขอใช้งานเครื่องมือ
+    st.subheader('Current Requests')
+    if requests:
+        df = pd.DataFrame(requests)
+        st.dataframe(df)
+    else:
+        st.write("No requests found.")
 
-    # เพิ่มสินค้า
-    st.subheader('Add New Item')
-    new_item_name = st.text_input('Item Name')
-    new_item_quantity = st.number_input('Quantity', min_value=0)
+    # ฟอร์มสำหรับขอใช้งานเครื่องมือ
+    st.subheader('Request a Tool')
+    tool_name = st.text_input('Tool Name')
+    user_name = st.text_input('User Name')
+    usage_date = st.date_input('Date of Usage', datetime.today())
+    usage_time = st.time_input('Time of Usage', datetime.now().time())
+    reason = st.text_area('Reason for Request')
+    remarks = st.text_area('Remarks')
 
-    if st.button('Add Item'):
-        if new_item_name and new_item_quantity >= 0:
-            inventory.append({'name': new_item_name, 'quantity': new_item_quantity})
-            save_data(inventory)
-            st.success('Item added successfully!')
+    if st.button('Submit Request'):
+        if tool_name and user_name and reason:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            request_data = {
+                'tool_name': tool_name,
+                'user_name': user_name,
+                'usage_datetime': f"{usage_date} {usage_time}",
+                'reason': reason,
+                'remarks': remarks,
+                'timestamp': timestamp
+            }
+            requests.append(request_data)
+            save_data(requests)
+            st.success('Request submitted successfully!')
 
-    # ลบสินค้า
-    st.subheader('Remove Item')
-    item_to_remove = st.selectbox('Select Item to Remove', [item['name'] for item in inventory])
+    # ลบการขอใช้งานเครื่องมือ
+    st.subheader('Remove a Request')
+    request_to_remove = st.selectbox('Select Request to Remove', [f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" for req in requests])
 
-    if st.button('Remove Item'):
-        inventory = [item for item in inventory if item['name'] != item_to_remove]
-        save_data(inventory)
-        st.success('Item removed successfully!')
+    if st.button('Remove Request'):
+        requests = [req for req in requests if f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" != request_to_remove]
+        save_data(requests)
+        st.success('Request removed successfully!')
 
 if __name__ == '__main__':
     main()
