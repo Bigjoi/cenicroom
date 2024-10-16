@@ -36,17 +36,23 @@ def main():
     user_name = st.text_input('User Name')
     usage_date = st.date_input('Date of Usage', datetime.today())
     usage_time = st.time_input('Time of Usage', datetime.now().time())
-    reason = st.text_area('Reason for Request')
+    
+    # เพิ่มช่องวันที่และเวลาคืนเครื่องมือ
+    return_date = st.date_input('Return Date', datetime.today())
+    return_time = st.time_input('Return Time', datetime.now().time())
+    
+    #reason = st.text_area('Reason for Request')
     remarks = st.text_area('Remarks')
 
     if st.button('Submit Request'):
-        if tool_name and user_name and reason:
+        if tool_name and user_name:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             request_data = {
                 'tool_name': tool_name,
                 'user_name': user_name,
                 'usage_datetime': f"{usage_date} {usage_time}",
-                'reason': reason,
+                'return_datetime': f"{return_date} {return_time}",
+                #'reason': reason,
                 'remarks': remarks,
                 'timestamp': timestamp
             }
@@ -56,7 +62,8 @@ def main():
 
     # ลบการขอใช้งานเครื่องมือ
     st.subheader('Remove a Request')
-    request_to_remove = st.selectbox('Select Request to Remove', [f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" for req in requests])
+    request_to_remove = st.selectbox('Select Request to Remove', 
+                                       [f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" for req in requests])
 
     if st.button('Remove Request'):
         requests = [req for req in requests if f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" != request_to_remove]
