@@ -11,20 +11,6 @@ image_path = "cenic2.jpg"
 st.image(image_path, use_column_width=True)
 
 
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHZ6czM4ZXR2M3UxeXFsZXlvajF3NGl4NnBlMWd4d3UwYmdjbTUzNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/a8QIAcEDlLgxipiJLD/giphy-downsized-large.gif');
-        background-size: cover;
-        background-position: center;
-        height: 100vh;
-        
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์ JSON
 def load_data():
@@ -55,13 +41,13 @@ def main():
     # ฟอร์มสำหรับขอใช้งานเครื่องมือ
     st.subheader('Request Mercury Analyzer NIC')
     tool_name = st.text_input('Name Model : เช่น MA-3000 NIC-01')
-    user_name = st.text_input('User Name : เช่น Natthaphong MI หรือ NTP MI')
+    user_name = st.text_input('User Name : เช่น Natthaphong MI NTP MI')
     usage_date = st.date_input('Date of Usage', datetime.today())
-    #usage_time = st.time_input('Time of Usage', datetime.now().time())
+    usage_time = st.time_input('Time of Usage', datetime.now().time())
     
     # เพิ่มช่องวันที่และเวลาคืนเครื่องมือ
     return_date = st.date_input('Return Date', datetime.today())
-    #return_time = st.time_input('Return Time', datetime.now().time())
+    return_time = st.time_input('Return Time', datetime.now().time())
     
     #reason = st.text_area('Reason for Request')
     remarks = st.text_area('Remarks')
@@ -72,8 +58,8 @@ def main():
             request_data = {
                 'tool_name': tool_name,
                 'user_name': user_name,
-                'usage_datetime': f"{usage_date} ",
-                'return_datetime': f"{return_date} ",
+                'usage_datetime': f"{usage_date} {usage_time}",
+                'return_datetime': f"{return_date} {return_time}",
                 #'reason': reason,
                 'remarks': remarks,
                 'timestamp': timestamp
