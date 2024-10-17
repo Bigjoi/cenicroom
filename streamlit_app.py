@@ -10,40 +10,17 @@ from datetime import datetime
 # แสดงภาพโดยปรับขนาดอัตโนมัติ
 #st.image(image_path, use_column_width=True)
 
+
 st.markdown(
     """
     <style>
-    .video-background {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        overflow: hidden;
-    }
-    .video-background iframe {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 100%;
-        height: 100%;
-        transform: translate(-50%, -50%);
-        pointer-events: none; /* ป้องกันการคลิก */
-    }
-    .content {
-        position: relative;
-        z-index: 1;
-        color: white; /* เปลี่ยนสีข้อความ */
-        text-align: center;
-        padding: 20px;
+    .stApp {
+        background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGJ1ZzY1bWVrZXcycXo3em41b2NpdWZlcjJ5ZmwzemFwY2Y1Zmg3cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/BHWoX8f4EqKcPTALTK/giphy.gif');
+        background-size: cover;
+        background-position: center;
+        height: 100vh;
     }
     </style>
-    <div class="video-background">
-        <iframe src="https://www.youtube.com/embed/EsptM4ULxgI?autoplay=1&mute=1&loop=1&playlist=EsptM4ULxgI" frameborder="0" allowfullscreen></iframe>
-    </div>
-    <div class="content">
-    </div>
     """,
     unsafe_allow_html=True
 )
