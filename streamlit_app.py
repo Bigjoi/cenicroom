@@ -43,11 +43,11 @@ def main():
     tool_name = st.text_input('Name Model : เช่น MA-3000 NIC-01')
     user_name = st.text_input('User Name : เช่น Natthaphong MI NTP MI')
     usage_date = st.date_input('Date of Usage', datetime.today())
-    usage_time = st.time_input('Time of Usage', datetime.now().time())
+    #usage_time = st.time_input('Time of Usage', datetime.now().time())
     
     # เพิ่มช่องวันที่และเวลาคืนเครื่องมือ
     return_date = st.date_input('Return Date', datetime.today())
-    return_time = st.time_input('Return Time', datetime.now().time())
+    #return_time = st.time_input('Return Time', datetime.now().time())
     
     #reason = st.text_area('Reason for Request')
     remarks = st.text_area('Remarks')
@@ -58,8 +58,8 @@ def main():
             request_data = {
                 'tool_name': tool_name,
                 'user_name': user_name,
-                'usage_datetime': f"{usage_date} {usage_time}",
-                'return_datetime': f"{return_date} {return_time}",
+                'usage_datetime': f"{usage_date} ",
+                'return_datetime': f"{return_date} ",
                 #'reason': reason,
                 'remarks': remarks,
                 'timestamp': timestamp
