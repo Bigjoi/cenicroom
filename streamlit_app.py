@@ -10,9 +10,37 @@ image_path = "cenic1.jpg"
 # แสดงภาพโดยปรับขนาดอัตโนมัติ
 st.image(image_path, use_column_width=True)
 
-# เพิ่มรูปภาพด้านบน
-#st.image('cenic1.jpg', width=700)  # เปลี่ยนเป็นชื่อไฟล์รูปภาพของคุณ
+# URL ของวีดีโอ YouTube
+video_id = "uNKFrWmJvtk&t"  # เปลี่ยนเป็น ID ของวีดีโอที่คุณต้องการ
 
+# ใช้ HTML สำหรับแสดงวีดีโอพื้นหลังจาก YouTube
+st.markdown(
+    f"""
+    <style>
+    .video-background {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+    }}
+    iframe {{
+        width: 100%;
+        height: 100%;
+        border: none;
+    }}
+    </style>
+    <div class="video-background">
+        <iframe src="https://www.youtube.com/embed/{video_id}?autoplay=1&mute=1&loop=1&playlist={video_id}" 
+                allow="autoplay; encrypted-media" 
+                allowfullscreen>
+        </iframe>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์ JSON
