@@ -4,9 +4,14 @@ import json
 import os
 from datetime import datetime
 
+# ใส่ที่อยู่ของภาพ
+image_path = "cenic1.jpg"
+
+# แสดงภาพโดยปรับขนาดอัตโนมัติ
+st.image(image_path, use_column_width=True)
 
 # เพิ่มรูปภาพด้านบน
-st.image('cenic1.jpg', width=700)  # เปลี่ยนเป็นชื่อไฟล์รูปภาพของคุณ
+#st.image('cenic1.jpg', width=700)  # เปลี่ยนเป็นชื่อไฟล์รูปภาพของคุณ
 
 
 
