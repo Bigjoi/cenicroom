@@ -72,8 +72,8 @@ def main():
             request_data = {
                 'tool_name': tool_name,
                 'user_name': user_name,
-                'usage_datetime': f"{usage_date} {usage_time}",
-                'return_datetime': f"{return_date} {return_time}",
+                'usage_datetime': f"{usage_date} ",
+                'return_datetime': f"{return_date} ",
                 #'reason': reason,
                 'remarks': remarks,
                 'timestamp': timestamp
