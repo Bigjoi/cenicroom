@@ -5,19 +5,15 @@ import os
 from datetime import datetime
 
 # ใส่ที่อยู่ของภาพ
-image_path = "cenic1.jpg"
+#image_path = "cenic1.jpg"
 
 # แสดงภาพโดยปรับขนาดอัตโนมัติ
-st.image(image_path, use_column_width=True)
+#st.image(image_path, use_column_width=True)
 
-# URL ของวีดีโอ YouTube
-video_id = "uNKFrWmJvtk&t"  # เปลี่ยนเป็น ID ของวีดีโอที่คุณต้องการ
-
-# ใช้ HTML สำหรับแสดงวีดีโอพื้นหลังจาก YouTube
 st.markdown(
-    f"""
+    """
     <style>
-    .video-background {{
+    .video-background {
         position: fixed;
         top: 0;
         left: 0;
@@ -25,23 +21,32 @@ st.markdown(
         height: 100%;
         z-index: -1;
         overflow: hidden;
-    }}
-    iframe {{
+    }
+    .video-background iframe {
+        position: absolute;
+        top: 50%;
+        left: 50%;
         width: 100%;
         height: 100%;
-        border: none;
-    }}
+        transform: translate(-50%, -50%);
+        pointer-events: none; /* ป้องกันการคลิก */
+    }
+    .content {
+        position: relative;
+        z-index: 1;
+        color: white; /* เปลี่ยนสีข้อความ */
+        text-align: center;
+        padding: 20px;
+    }
     </style>
     <div class="video-background">
-        <iframe src="https://www.youtube.com/embed/{video_id}?autoplay=1&mute=1&loop=1&playlist={video_id}" 
-                allow="autoplay; encrypted-media" 
-                allowfullscreen>
-        </iframe>
+        <iframe src="https://www.youtube.com/embed/EsptM4ULxgI?autoplay=1&mute=1&loop=1&playlist=EsptM4ULxgI" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <div class="content">
     </div>
     """,
     unsafe_allow_html=True
 )
-
 
 # ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์ JSON
 def load_data():
