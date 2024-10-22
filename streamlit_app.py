@@ -3,6 +3,13 @@ import pandas as pd
 import sqlite3
 from datetime import datetime
 
+
+# ใส่ที่อยู่ของภาพ
+image_path = "cenic2.jpg"
+
+# แสดงภาพโดยปรับขนาดอัตโนมัติ
+st.image(image_path, use_column_width=True)
+
 # ฟังก์ชันสำหรับสร้างฐานข้อมูลและตาราง
 def create_database():
     conn = sqlite3.connect('requests.db')
@@ -89,3 +96,17 @@ def main():
 
 if __name__ == '__main__':
     main()
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3F0MzBlcWJnM211NHJhNGI0ZTcwbDJreHBsM3Vja3RndTR6bmxnNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dAgEMJ7HKC6jgoxFWp/giphy.gif');
+        background-size: cover;
+        background-position: center;
+        height: 100vh;
+        
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
