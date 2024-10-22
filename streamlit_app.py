@@ -6,11 +6,7 @@ from datetime import datetime
 
 # ใส่ที่อยู่ของภาพ
 image_path = "cenic2.jpg"
-
-# แสดงภาพโดยปรับขนาดอัตโนมัติ
 st.image(image_path, use_column_width=True)
-
-
 
 # ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์ JSON
 def load_data():
@@ -28,12 +24,14 @@ def save_data(data):
 def main():
     st.title('Hg CENIC Request System')
 
-    requests = load_data()
-    
+    # โหลดข้อมูลลงใน session state หากยังไม่มี
+    if 'requests' not in st.session_state:
+        st.session_state.requests = load_data()
+
     # แสดงข้อมูลการขอใช้งานเครื่องมือ
     st.subheader('Current Requests')
-    if requests:
-        df = pd.DataFrame(requests)
+    if st.session_state.requests:
+        df = pd.DataFrame(st.session_state.requests)
         st.dataframe(df)
     else:
         st.write("No requests found.")
@@ -43,13 +41,7 @@ def main():
     tool_name = st.text_input('Name Model : เช่น MA-3000 NIC-01')
     user_name = st.text_input('User Name : เช่น Natthaphong MI NTP MI')
     usage_date = st.date_input('Date of Usage', datetime.today())
-    #usage_time = st.time_input('Time of Usage', datetime.now().time())
-    
-    # เพิ่มช่องวันที่และเวลาคืนเครื่องมือ
     return_date = st.date_input('Return Date', datetime.today())
-    #return_time = st.time_input('Return Time', datetime.now().time())
-    
-    #reason = st.text_area('Reason for Request')
     remarks = st.text_area('Remarks')
 
     if st.button('Submit Request'):
@@ -58,40 +50,21 @@ def main():
             request_data = {
                 'tool_name': tool_name,
                 'user_name': user_name,
-                'usage_datetime': f"{usage_date} ",
-                'return_datetime': f"{return_date} ",
-                #'reason': reason,
+                'usage_datetime': str(usage_date),
+                'return_datetime': str(return_date),
                 'remarks': remarks,
                 'timestamp': timestamp
             }
-            requests.append(request_data)
-            save_data(requests)
+            st.session_state.requests.append(request_data)
+            save_data(st.session_state.requests)
             st.success('Request submitted successfully!')
 
     # ลบการขอใช้งานเครื่องมือ
     st.subheader('Remove a Request Only Admin')
-    request_to_remove = st.selectbox('Select Request to Remove', 
-                                       [f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" for req in requests])
+    if st.session_state.requests:
+        request_to_remove = st.selectbox('Select Request to Remove', 
+                                           [f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" for req in st.session_state.requests])
 
-    if st.button('Remove Request'):
-        requests = [req for req in requests if f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" != request_to_remove]
-        save_data(requests)
-        st.success('Request removed successfully!')
-
-if __name__ == '__main__':
-    main()
-
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3F0MzBlcWJnM211NHJhNGI0ZTcwbDJreHBsM3Vja3RndTR6bmxnNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dAgEMJ7HKC6jgoxFWp/giphy.gif');
-        background-size: cover;
-        background-position: center;
-        height: 100vh;
-        
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+        if st.button('Remove Request'):
+            st.session_state.requests = [req for req in st.session_state.requests if f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" != request_to_remove]
+            save_data(st.session_sta
