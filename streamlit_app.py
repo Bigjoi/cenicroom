@@ -67,4 +67,22 @@ def main():
 
         if st.button('Remove Request'):
             st.session_state.requests = [req for req in st.session_state.requests if f"{req['tool_name']} by {req['user_name']} on {req['usage_datetime']}" != request_to_remove]
-            save_data(st.session_sta
+            save_data(st.session_state.requests)
+            st.success('Request removed successfully!')
+
+if __name__ == '__main__':
+    main()
+
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3F0MzBlcWJnM211NHJhNGI0ZTcwbDJreHBsM3Vja3RndTR6bmxnNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dAgEMJ7HKC6jgoxFWp/giphy.gif');
+        background-size: cover;
+        background-position: center;
+        height: 100vh;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
