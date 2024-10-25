@@ -3,14 +3,13 @@ import pandas as pd
 import sqlite3
 from datetime import datetime
 
-
-# ใส่ที่อยู่ของภาพ
+# Path to the image
 image_path = "cenic2.jpg"
 
-# แสดงภาพโดยปรับขนาดอัตโนมัติ
+# Display the image with auto-resizing
 st.image(image_path, use_column_width=True)
 
-# ฟังก์ชันสำหรับสร้างฐานข้อมูลและตาราง
+# Function to create the database and table
 def create_database():
     conn = sqlite3.connect('requests.db')
     c = conn.cursor()
@@ -27,7 +26,7 @@ def create_database():
     conn.commit()
     conn.close()
 
-# ฟังก์ชันสำหรับบันทึกข้อมูลลงในฐานข้อมูล
+# Function to save data to the database
 def save_data_to_db(request_data):
     with sqlite3.connect('requests.db') as conn:
         c = conn.cursor()
@@ -35,22 +34,22 @@ def save_data_to_db(request_data):
                   (request_data['tool_name'], request_data['user_name'], request_data['usage_datetime'], request_data['return_datetime'], request_data['remarks'], request_data['timestamp']))
         conn.commit()
 
-# ฟังก์ชันสำหรับโหลดข้อมูลจากฐานข้อมูล
+# Function to load data from the database
 def load_data_from_db():
     with sqlite3.connect('requests.db') as conn:
         c = conn.cursor()
         c.execute('SELECT * FROM requests')
         return c.fetchall()
 
-# ฟังก์ชันหลัก
+# Function for main app logic
 def main():
-    create_database()  # สร้างฐานข้อมูลและตารางถ้ายังไม่มี
+    create_database()  # Create the database and table if not exists
     st.title('Hg CENIC Request System')
 
-    # โหลดข้อมูลจากฐานข้อมูล
+    # Load data from the database
     requests = load_data_from_db()
 
-    # แสดงข้อมูลการขอใช้งานเครื่องมือ
+    # Display current requests
     st.subheader('Current Requests')
     if requests:
         df = pd.DataFrame(requests, columns=['Tool Name', 'User Name', 'Usage Date', 'Return Date', 'Remarks', 'Timestamp'])
@@ -58,7 +57,7 @@ def main():
     else:
         st.write("No requests found.")
 
-    # ฟอร์มสำหรับขอใช้งานเครื่องมือ
+    # Form for requesting tool usage
     st.subheader('Request Mercury Analyzer NIC')
     tool_name = st.text_input('Name Model : เช่น MA-3000 NIC-01')
     user_name = st.text_input('User Name : เช่น Natthaphong MI NTP MI')
@@ -77,25 +76,32 @@ def main():
                 'remarks': remarks,
                 'timestamp': timestamp
             }
-            save_data_to_db(request_data)  # บันทึกข้อมูลลงฐานข้อมูล
+            save_data_to_db(request_data)  # Save data to database
             st.success('Request submitted successfully!')
+            # Reload data after submitting to show the new entry
+            requests = load_data_from_db()
 
-    # ลบการขอใช้งานเครื่องมือ
-    st.subheader('Remove a Request Only Admin')
+    # Remove a request (admin only)
+    st.subheader('Remove a Request (Admin Only)')
     if requests:
         request_to_remove = st.selectbox('Select Request to Remove', 
                                            [f"{req[0]} by {req[1]} on {req[2]}" for req in requests])
 
         if st.button('Remove Request'):
+            tool, user, date = request_to_remove.split(" by ")[0], request_to_remove.split(" by ")[1].split(" on ")[0], request_to_remove.split(" on ")[1]
             with sqlite3.connect('requests.db') as conn:
                 c = conn.cursor()
                 c.execute('DELETE FROM requests WHERE tool_name=? AND user_name=? AND usage_datetime=?', 
-                          (request_to_remove.split(" by ")[0], request_to_remove.split(" by ")[1].split(" on ")[0], request_to_remove.split(" on ")[1]))
+                          (tool, user, date))
                 conn.commit()
             st.success('Request removed successfully!')
+            # Reload data after removing to reflect changes
+            requests = load_data_from_db()
 
 if __name__ == '__main__':
     main()
+
+# Custom CSS for the background
 st.markdown(
     """
     <style>
