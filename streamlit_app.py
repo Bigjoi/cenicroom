@@ -1,93 +1,40 @@
 import streamlit as st
 import pandas as pd
-import psycopg2
-from psycopg2 import sql
 from datetime import datetime
+import os
 
-# Path to the image
-image_path = "cenic2.jpg"
+# Path to the CSV file
+csv_path = 'requests.csv'
 
-# Display the image with auto-resizing
-st.image(image_path, use_column_width=True)
+# Function to create CSV file if it doesn't exist
+def create_csv():
+    if not os.path.exists(csv_path):
+        # Create the CSV file with header if it doesn't exist
+        df = pd.DataFrame(columns=['Tool Name', 'User Name', 'Usage Date', 'Return Date', 'Remarks', 'Timestamp'])
+        df.to_csv(csv_path, index=False)
 
-# Database connection details (PostgreSQL)
-DB_HOST = "your_host"  # เช่น 'localhost' หรือ 'db.heroku.com'
-DB_NAME = "your_database"
-DB_USER = "your_user"
-DB_PASSWORD = "your_password"
-DB_PORT = "5432"  # ปกติแล้วจะเป็น 5432
+# Function to save data to the CSV file
+def save_data_to_csv(request_data):
+    df = pd.read_csv(csv_path)
+    df = df.append(request_data, ignore_index=True)
+    df.to_csv(csv_path, index=False)
 
-# Function to create the database and table
-def create_database():
-    try:
-        # เชื่อมต่อกับ PostgreSQL
-        conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
-        c = conn.cursor()
-
-        # สร้างตาราง requests หากไม่มี
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS requests (
-                id SERIAL PRIMARY KEY,
-                tool_name TEXT,
-                user_name TEXT,
-                usage_datetime TEXT,
-                return_datetime TEXT,
-                remarks TEXT,
-                timestamp TEXT
-            )
-        ''')
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        st.error(f"Error creating database: {e}")
-
-# Function to save data to the database
-def save_data_to_db(request_data):
-    try:
-        # เชื่อมต่อกับ PostgreSQL
-        conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
-        c = conn.cursor()
-        
-        # บันทึกข้อมูลลงในฐานข้อมูล
-        c.execute('''
-            INSERT INTO requests (tool_name, user_name, usage_datetime, return_datetime, remarks, timestamp)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (request_data['tool_name'], request_data['user_name'], request_data['usage_datetime'],
-              request_data['return_datetime'], request_data['remarks'], request_data['timestamp']))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        st.error(f"Error saving data: {e}")
-
-# Function to load data from the database
-def load_data_from_db():
-    try:
-        # เชื่อมต่อกับ PostgreSQL
-        conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
-        c = conn.cursor()
-        
-        # โหลดข้อมูลจากฐานข้อมูล
-        c.execute('SELECT * FROM requests')
-        requests = c.fetchall()
-        conn.close()
-        return requests
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
-        return []
+# Function to load data from the CSV file
+def load_data_from_csv():
+    return pd.read_csv(csv_path)
 
 # Function for main app logic
 def main():
-    create_database()  # Create the database and table if not exists
+    create_csv()  # Create the CSV file if not exists
     st.title('Hg CENIC Request System')
 
-    # Load data from the database
-    requests = load_data_from_db()
+    # Load data from the CSV file
+    requests = load_data_from_csv()
 
     # Display current requests
     st.subheader('Current Requests')
-    if requests:
-        df = pd.DataFrame(requests, columns=['ID', 'Tool Name', 'User Name', 'Usage Date', 'Return Date', 'Remarks', 'Timestamp'])
-        st.dataframe(df)
+    if not requests.empty:
+        st.dataframe(requests)
     else:
         st.write("No requests found.")
 
@@ -103,38 +50,47 @@ def main():
         if tool_name and user_name:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             request_data = {
-                'tool_name': tool_name,
-                'user_name': user_name,
-                'usage_datetime': str(usage_date),
-                'return_datetime': str(return_date),
-                'remarks': remarks,
-                'timestamp': timestamp
+                'Tool Name': tool_name,
+                'User Name': user_name,
+                'Usage Date': str(usage_date),
+                'Return Date': str(return_date),
+                'Remarks': remarks,
+                'Timestamp': timestamp
             }
-            save_data_to_db(request_data)  # Save data to database
+            save_data_to_csv(request_data)  # Save data to CSV
             st.success('Request submitted successfully!')
             # Reload data after submitting to show the new entry
-            requests = load_data_from_db()
+            requests = load_data_from_csv()
 
-    # Remove a request (admin only)
-    st.subheader('Remove a Request (Admin Only)')
-    if requests:
-        request_to_remove = st.selectbox('Select Request to Remove',
-                                           [f"{req[1]} by {req[2]} on {req[3]}" for req in requests])
+    # Editing requests (Admin Only)
+    st.subheader('Edit a Request (Admin Only)')
+    if not requests.empty:
+        request_to_edit = st.selectbox('Select Request to Edit', 
+                                       [f"{row['Tool Name']} by {row['User Name']} on {row['Usage Date']}" for index, row in requests.iterrows()])
 
-        if st.button('Remove Request'):
-            tool, user, date = request_to_remove.split(" by ")[0], request_to_remove.split(" by ")[1].split(" on ")[0], request_to_remove.split(" on ")[1]
-            try:
-                conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
-                c = conn.cursor()
-                c.execute('DELETE FROM requests WHERE tool_name=%s AND user_name=%s AND usage_datetime=%s',
-                          (tool, user, date))
-                conn.commit()
-                conn.close()
-                st.success('Request removed successfully!')
-                # Reload data after removing to reflect changes
-                requests = load_data_from_db()
-            except Exception as e:
-                st.error(f"Error removing request: {e}")
+        if request_to_edit:
+            # Extract selected request details
+            tool, user, date = request_to_edit.split(' by ')[0], request_to_edit.split(' by ')[1].split(' on ')[0], request_to_edit.split(' on ')[1]
+            selected_row = requests[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date)]
+
+            # Display fields with current data
+            new_tool_name = st.text_input('Tool Name', selected_row['Tool Name'].values[0])
+            new_user_name = st.text_input('User Name', selected_row['User Name'].values[0])
+            new_usage_date = st.date_input('Date of Usage', pd.to_datetime(selected_row['Usage Date'].values[0]))
+            new_return_date = st.date_input('Return Date', pd.to_datetime(selected_row['Return Date'].values[0]))
+            new_remarks = st.text_area('Remarks', selected_row['Remarks'].values[0])
+
+            if st.button('Save Changes'):
+                # Update the selected row with new data
+                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Tool Name'] = new_tool_name
+                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'User Name'] = new_user_name
+                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Usage Date'] = str(new_usage_date)
+                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Return Date'] = str(new_return_date)
+                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Remarks'] = new_remarks
+                requests.to_csv(csv_path, index=False)  # Save changes to CSV
+                st.success('Request updated successfully!')
+                # Reload data after editing to reflect changes
+                requests = load_data_from_csv()
 
 if __name__ == '__main__':
     main()
