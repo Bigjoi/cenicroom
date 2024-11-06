@@ -1,40 +1,64 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
 from datetime import datetime
 import os
 
-# Path to the CSV file
-csv_path = 'requests.csv'
+# Path to the image
+image_path = "cenic2.jpg"
 
-# Function to create CSV file if it doesn't exist
-def create_csv():
-    if not os.path.exists(csv_path):
-        # Create the CSV file with header if it doesn't exist
-        df = pd.DataFrame(columns=['Tool Name', 'User Name', 'Usage Date', 'Return Date', 'Remarks', 'Timestamp'])
-        df.to_csv(csv_path, index=False)
+# Display the image with auto-resizing
+st.image(image_path, use_column_width=True)
 
-# Function to save data to the CSV file
-def save_data_to_csv(request_data):
-    df = pd.read_csv(csv_path)
-    df = df.append(request_data, ignore_index=True)
-    df.to_csv(csv_path, index=False)
+# Path to SQLite database (ensure it's in a persistent location)
+db_path = 'requests.db'
 
-# Function to load data from the CSV file
-def load_data_from_csv():
-    return pd.read_csv(csv_path)
+# Function to create the database and table
+def create_database():
+    if not os.path.exists(db_path):  # Check if the database file exists
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS requests (
+                tool_name TEXT,
+                user_name TEXT,
+                usage_datetime TEXT,
+                return_datetime TEXT,
+                remarks TEXT,
+                timestamp TEXT
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+# Function to save data to the database
+def save_data_to_db(request_data):
+    with sqlite3.connect(db_path) as conn:
+        c = conn.cursor()
+        c.execute('INSERT INTO requests (tool_name, user_name, usage_datetime, return_datetime, remarks, timestamp) VALUES (?, ?, ?, ?, ?, ?)', 
+                  (request_data['tool_name'], request_data['user_name'], request_data['usage_datetime'], request_data['return_datetime'], request_data['remarks'], request_data['timestamp']))
+        conn.commit()
+
+# Function to load data from the database
+def load_data_from_db():
+    with sqlite3.connect(db_path) as conn:
+        c = conn.cursor()
+        c.execute('SELECT * FROM requests')
+        return c.fetchall()
 
 # Function for main app logic
 def main():
-    create_csv()  # Create the CSV file if not exists
+    create_database()  # Create the database and table if not exists
     st.title('Hg CENIC Request System')
 
-    # Load data from the CSV file
-    requests = load_data_from_csv()
+    # Load data from the database
+    requests = load_data_from_db()
 
     # Display current requests
     st.subheader('Current Requests')
-    if not requests.empty:
-        st.dataframe(requests)
+    if requests:
+        df = pd.DataFrame(requests, columns=['Tool Name', 'User Name', 'Usage Date', 'Return Date', 'Remarks', 'Timestamp'])
+        st.dataframe(df)
     else:
         st.write("No requests found.")
 
@@ -50,47 +74,34 @@ def main():
         if tool_name and user_name:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             request_data = {
-                'Tool Name': tool_name,
-                'User Name': user_name,
-                'Usage Date': str(usage_date),
-                'Return Date': str(return_date),
-                'Remarks': remarks,
-                'Timestamp': timestamp
+                'tool_name': tool_name,
+                'user_name': user_name,
+                'usage_datetime': str(usage_date),
+                'return_datetime': str(return_date),
+                'remarks': remarks,
+                'timestamp': timestamp
             }
-            save_data_to_csv(request_data)  # Save data to CSV
+            save_data_to_db(request_data)  # Save data to database
             st.success('Request submitted successfully!')
             # Reload data after submitting to show the new entry
-            requests = load_data_from_csv()
+            requests = load_data_from_db()
 
-    # Editing requests (Admin Only)
-    st.subheader('Edit a Request (Admin Only)')
-    if not requests.empty:
-        request_to_edit = st.selectbox('Select Request to Edit', 
-                                       [f"{row['Tool Name']} by {row['User Name']} on {row['Usage Date']}" for index, row in requests.iterrows()])
+    # Remove a request (admin only)
+    st.subheader('Remove a Request (Admin Only)')
+    if requests:
+        request_to_remove = st.selectbox('Select Request to Remove', 
+                                           [f"{req[0]} by {req[1]} on {req[2]}" for req in requests])
 
-        if request_to_edit:
-            # Extract selected request details
-            tool, user, date = request_to_edit.split(' by ')[0], request_to_edit.split(' by ')[1].split(' on ')[0], request_to_edit.split(' on ')[1]
-            selected_row = requests[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date)]
-
-            # Display fields with current data
-            new_tool_name = st.text_input('Tool Name', selected_row['Tool Name'].values[0])
-            new_user_name = st.text_input('User Name', selected_row['User Name'].values[0])
-            new_usage_date = st.date_input('Date of Usage', pd.to_datetime(selected_row['Usage Date'].values[0]))
-            new_return_date = st.date_input('Return Date', pd.to_datetime(selected_row['Return Date'].values[0]))
-            new_remarks = st.text_area('Remarks', selected_row['Remarks'].values[0])
-
-            if st.button('Save Changes'):
-                # Update the selected row with new data
-                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Tool Name'] = new_tool_name
-                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'User Name'] = new_user_name
-                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Usage Date'] = str(new_usage_date)
-                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Return Date'] = str(new_return_date)
-                requests.loc[(requests['Tool Name'] == tool) & (requests['User Name'] == user) & (requests['Usage Date'] == date), 'Remarks'] = new_remarks
-                requests.to_csv(csv_path, index=False)  # Save changes to CSV
-                st.success('Request updated successfully!')
-                # Reload data after editing to reflect changes
-                requests = load_data_from_csv()
+        if st.button('Remove Request'):
+            tool, user, date = request_to_remove.split(" by ")[0], request_to_remove.split(" by ")[1].split(" on ")[0], request_to_remove.split(" on ")[1]
+            with sqlite3.connect(db_path) as conn:
+                c = conn.cursor()
+                c.execute('DELETE FROM requests WHERE tool_name=? AND user_name=? AND usage_datetime=?', 
+                          (tool, user, date))
+                conn.commit()
+            st.success('Request removed successfully!')
+            # Reload data after removing to reflect changes
+            requests = load_data_from_db()
 
 if __name__ == '__main__':
     main()
